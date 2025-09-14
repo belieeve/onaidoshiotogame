@@ -18,16 +18,24 @@ export class App {
   }
 
   async start() {
-    await this.pixi.init({ width: this.root.clientWidth, height: this.root.clientHeight })
-    this.root.appendChild(this.pixi.canvas)
-    this.installResize()
+    try {
+      await this.pixi.init({ width: this.root.clientWidth, height: this.root.clientHeight })
+      this.root.appendChild(this.pixi.canvas)
+      this.installResize()
 
-    // Simple safe-area margins for mobile
-    const overlay = new Graphics()
-    overlay.eventMode = 'passive'
-    this.pixi.stage.addChild(overlay)
+      // Simple safe-area margins for mobile
+      const overlay = new Graphics()
+      overlay.eventMode = 'passive'
+      this.pixi.stage.addChild(overlay)
 
-    this.scene.change(new MenuScene(this.scene))
+      this.scene.change(new MenuScene(this.scene))
+    } catch (e) {
+      const el = document.createElement('div')
+      el.style.cssText = 'color:#fff;font:14px system-ui;padding:16px;'
+      el.textContent = '初期化に失敗しました。ブラウザを更新してください。'
+      this.root.appendChild(el)
+      console.error('App init failed', e)
+    }
   }
 
   private installResize() {
@@ -39,4 +47,3 @@ export class App {
     window.addEventListener('resize', onResize)
   }
 }
-

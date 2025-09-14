@@ -23,9 +23,9 @@ export class CalibrationScene implements Scene {
     const back = new Graphics().roundRect(24, 100, 160, 44, 10).fill(0x44445a)
     const backT = new Text({ text: '戻る', style: { fill: 0xffffff, fontSize: 16 } })
     backT.x = 24 + 16; backT.y = 100 + 12
-    back.eventMode='static'; back.cursor='pointer'; back.on('pointertap', () => {
-      const { SettingsScene } = require('../SettingsScene')
-      this.change(new SettingsScene())
+    back.eventMode='static'; back.cursor='pointer'; back.on('pointertap', async () => {
+      const mod = await import('../SettingsScene')
+      this.change(new mod.SettingsScene())
     })
     this.stage.addChild(back, backT)
 
@@ -117,8 +117,6 @@ export class CalibrationScene implements Scene {
     const s = loadSettings()
     s.offsetMs = -this.avgMs
     saveSettings(s)
-    const { SettingsScene } = require('../SettingsScene')
-    this.change(new SettingsScene())
+    import('../SettingsScene').then(mod => this.change(new mod.SettingsScene()))
   }
 }
-

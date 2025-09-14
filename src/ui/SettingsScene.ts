@@ -152,9 +152,9 @@ export class SettingsScene implements Scene {
     const t = new Text({ text: '開始', style: { fill: 0xffffff, fontSize: 16 } })
     t.x=x+70; t.y=y+28+8
     btn.eventMode='static'; btn.cursor='pointer'
-    btn.on('pointertap', () => {
-      const { CalibrationScene } = require('./calibration/CalibrationScene')
-      this.change(new CalibrationScene())
+    btn.on('pointertap', async () => {
+      const mod = await import('./calibration/CalibrationScene')
+      this.change(new mod.CalibrationScene())
     })
     this.stage.addChild(label, btn, t)
   }
