@@ -1,9 +1,9 @@
 /* Basic service worker for offline cache */
 const CACHE = 'djrp-cache-v1';
 const CORE = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest'
+  './',
+  './index.html',
+  './manifest.webmanifest'
 ];
 
 self.addEventListener('install', (e) => {
@@ -28,4 +28,3 @@ self.addEventListener('fetch', (e) => {
     }).catch(() => cached))
   );
 });
-

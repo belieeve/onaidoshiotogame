@@ -16,6 +16,7 @@ export type SettingsData = {
   keymap: { lanes: string[], scratch: string }
   lefty: boolean
   visual: { lowPerf: boolean, effects: boolean }
+  gen?: { densityNps: number, scratchRatio: number }
   locale: 'ja' | 'en'
 }
 
@@ -28,7 +29,7 @@ export function saveScores(d: ScoreData) { localStorage.setItem(SCORE_KEY, JSON.
 export function loadSettings(): SettingsData {
   const raw = localStorage.getItem(SETTINGS_KEY)
   if (raw) return JSON.parse(raw)
-  const def: SettingsData = { speed: 1.2, offsetMs: 0, keymap: { lanes: ['a','s','d','j','k','l'], scratch: 'Enter' }, lefty: false, visual: { lowPerf: false, effects: true }, locale: 'ja' }
+  const def: SettingsData = { speed: 1.2, offsetMs: 0, keymap: { lanes: ['a','s','d','j','k','l'], scratch: 'Enter' }, lefty: false, visual: { lowPerf: false, effects: true }, gen: { densityNps: 4, scratchRatio: 0.06 }, locale: 'ja' }
   saveSettings(def); return def
 }
 export function saveSettings(d: SettingsData) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(d)) }
@@ -43,4 +44,3 @@ export function importAll(json: string) {
   if (data.scores) saveScores(data.scores)
   if (data.settings) saveSettings(data.settings)
 }
-

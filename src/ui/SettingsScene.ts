@@ -23,6 +23,10 @@ export class SettingsScene implements Scene {
     this.addLeftyToggle(24, y); y += 60
     this.addEffectsToggle(24, y); y += 60
     this.addLowPerfToggle(24, y); y += 60
+    this.addGenDensity(24, y); y += 60
+    this.addGenScratch(24, y); y += 70
+
+    this.addCalibration(24, y); y += 70
 
     const saveBtn = new Graphics().roundRect(24, y + 10, 160, 44, 10).fill(0x2b7a2b)
     const saveTxt = new Text({ text: '保存', style: { fill: 0xffffff, fontSize: 16 } })
@@ -107,6 +111,54 @@ export class SettingsScene implements Scene {
     this.stage.addChild(btn, t)
   }
 
+  private addGenDensity(x: number, y: number){
+    if (!this.state.gen) this.state.gen = { densityNps: 4, scratchRatio: 0.06 }
+    const label = new Text({ text: `譜面密度 NPS ${this.state.gen.densityNps.toFixed(1)}`, style: { fill: 0xffffff, fontSize: 18 } })
+    label.x = x; label.y = y
+    this.stage.addChild(label)
+    const minus = new Graphics().roundRect(x, y+28, 44, 32, 8).fill(0x44445a)
+    const plus = new Graphics().roundRect(x+52, y+28, 44, 32, 8).fill(0x44445a)
+    const t1 = new Text({ text: '-', style: { fill: 0xffffff, fontSize: 20 } })
+    const t2 = new Text({ text: '+', style: { fill: 0xffffff, fontSize: 20 } })
+    t1.x=x+16; t1.y=y+28+6; t2.x=x+52+16; t2.y=y+28+6
+    minus.eventMode='static'; plus.eventMode='static'; minus.cursor='pointer'; plus.cursor='pointer'
+    const update = () => { label.text = `譜面密度 NPS ${this.state.gen!.densityNps.toFixed(1)}` }
+    minus.on('pointertap', () => { this.state.gen!.densityNps = clamp(round1(this.state.gen!.densityNps - 0.5), 1, 7); update() })
+    plus.on('pointertap', () => { this.state.gen!.densityNps = clamp(round1(this.state.gen!.densityNps + 0.5), 1, 7); update() })
+    this.stage.addChild(minus, plus, t1, t2)
+  }
+
+  private addGenScratch(x: number, y: number){
+    if (!this.state.gen) this.state.gen = { densityNps: 4, scratchRatio: 0.06 }
+    const label = new Text({ text: `スクラッチ比率 ${(this.state.gen.scratchRatio*100).toFixed(0)}%`, style: { fill: 0xffffff, fontSize: 18 } })
+    label.x = x; label.y = y
+    this.stage.addChild(label)
+    const minus = new Graphics().roundRect(x, y+28, 44, 32, 8).fill(0x44445a)
+    const plus = new Graphics().roundRect(x+52, y+28, 44, 32, 8).fill(0x44445a)
+    const t1 = new Text({ text: '-', style: { fill: 0xffffff, fontSize: 20 } })
+    const t2 = new Text({ text: '+', style: { fill: 0xffffff, fontSize: 20 } })
+    t1.x=x+16; t1.y=y+28+6; t2.x=x+52+16; t2.y=y+28+6
+    minus.eventMode='static'; plus.eventMode='static'; minus.cursor='pointer'; plus.cursor='pointer'
+    const update = () => { label.text = `スクラッチ比率 ${(this.state.gen!.scratchRatio*100).toFixed(0)}%` }
+    minus.on('pointertap', () => { this.state.gen!.scratchRatio = clamp(round2(this.state.gen!.scratchRatio - 0.01), 0, 0.15); update() })
+    plus.on('pointertap', () => { this.state.gen!.scratchRatio = clamp(round2(this.state.gen!.scratchRatio + 0.01), 0, 0.15); update() })
+    this.stage.addChild(minus, plus, t1, t2)
+  }
+
+  private addCalibration(x: number, y: number){
+    const label = new Text({ text: 'キャリブレーション（簡易）', style: { fill: 0xffffff, fontSize: 18 } })
+    label.x = x; label.y = y
+    const btn = new Graphics().roundRect(x, y+28, 200, 36, 8).fill(0x2b7a2b)
+    const t = new Text({ text: '開始', style: { fill: 0xffffff, fontSize: 16 } })
+    t.x=x+70; t.y=y+28+8
+    btn.eventMode='static'; btn.cursor='pointer'
+    btn.on('pointertap', () => {
+      const { CalibrationScene } = require('./calibration/CalibrationScene')
+      this.change(new CalibrationScene())
+    })
+    this.stage.addChild(label, btn, t)
+  }
+
   update(): void {}
 
   dispose(): void {
@@ -116,3 +168,4 @@ export class SettingsScene implements Scene {
 
 function clamp(v: number, min: number, max: number){ return Math.max(min, Math.min(max, v)) }
 function round1(v: number){ return Math.round(v*10)/10 }
+function round2(v: number){ return Math.round(v*100)/100 }

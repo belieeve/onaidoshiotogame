@@ -8,8 +8,8 @@ export type SongMeta = {
 }
 
 export const songs: SongMeta[] = [
-  { id: 'pop-spark', title: 'Pop Spark', bpm: 140, duration: 120, audioUrl: '/audio/pop-spark.mp3', offsetMs: 0 },
-  { id: 'neon-groove', title: 'Neon Groove', bpm: 128, duration: 90, audioUrl: '/audio/neon-groove.mp3', offsetMs: 0 }
+  { id: 'pop-spark', title: 'Pop Spark', bpm: 140, duration: 120, audioUrl: 'audio/pop-spark.mp3', offsetMs: 0 },
+  { id: 'neon-groove', title: 'Neon Groove', bpm: 128, duration: 90, audioUrl: 'audio/neon-groove.mp3', offsetMs: 0 }
 ]
 
 export function getSongById(id: string) {

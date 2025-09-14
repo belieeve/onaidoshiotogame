@@ -26,6 +26,7 @@ export class PlayScene implements Scene {
   private lanesGfx: Graphics[] = []
   private mobileButtons: Graphics[] = []
   private scratchDisk?: Graphics
+  private scratchSpin = 0
   private scratchX = 0
   private scratchY = 0
   private settings = loadSettings()
@@ -39,6 +40,9 @@ export class PlayScene implements Scene {
   private pulse = { a: 0, color: 0x000000 }
   private lastNow = performance.now()
   private songOffsetMs = 0
+  private floatTexts: { t: Text, life: number, max: number }[] = []
+  private comboText?: Text
+  private lastComboShown = 0
 
   constructor(songId: string) { this.songId = songId }
 
@@ -95,13 +99,17 @@ export class PlayScene implements Scene {
     // Load audio and autogenerate chart from audio (fallback to grid)
     const buffer = await this.audio.load(song.audioUrl)
     try {
-      this.chart = generateChartFromAudio({ buffer, songId: song.id, bpm: song.bpm, densityNps: 4, scratchRatio: 0.06 })
+      const density = this.settings.gen?.densityNps ?? 4
+      const scratch = this.settings.gen?.scratchRatio ?? 0.06
+      this.chart = generateChartFromAudio({ buffer, songId: song.id, bpm: song.bpm, densityNps: density, scratchRatio: scratch })
     } catch {
       const seed = this.songId.split('').reduce((a,c)=>a+c.charCodeAt(0),0)
       const rand = mulberry32(seed)
       const origRandom = Math.random
       ;(Math as any).random = rand
-      this.chart = generateAutoChart({ bpm: song.bpm, durationSec: buffer.duration, songId: song.id, densityNps: 4, scratchRatio: 0.06 })
+      const density = this.settings.gen?.densityNps ?? 4
+      const scratch = this.settings.gen?.scratchRatio ?? 0.06
+      this.chart = generateAutoChart({ bpm: song.bpm, durationSec: buffer.duration, songId: song.id, densityNps: density, scratchRatio: scratch })
       ;(Math as any).random = origRandom
     }
     this.totalNotes = this.chart.notes.length
@@ -164,6 +172,7 @@ export class PlayScene implements Scene {
       this.stat.maxCombo = Math.max(this.stat.maxCombo, this.stat.combo)
       this.chart.notes.splice(idx,1)
       this.spawnHitEffect(-1, j) // scratch
+      this.scratchSpin += 0.8
     }
   }
 
@@ -232,6 +241,28 @@ export class PlayScene implements Scene {
         const ov = new Graphics().rect(0,0,W,H).fill(this.pulse.color, Math.min(0.25, this.pulse.a))
         this.stage.addChild(ov); queueMicrotask(() => ov.destroy())
       }
+    }
+
+    // Scratch disk spin decay
+    if (this.scratchDisk) {
+      this.scratchSpin *= 0.9
+      this.scratchDisk.rotation += this.scratchSpin * dt * 10
+    }
+
+    // Float judge texts update
+    for (let i = this.floatTexts.length - 1; i >= 0; i--) {
+      const e = this.floatTexts[i]
+      e.life -= dt
+      const t = Math.max(0, e.life / e.max)
+      e.t.alpha = t
+      e.t.y -= 60 * dt
+      if (e.life <= 0) { e.t.removeFromParent(); e.t.destroy(); this.floatTexts.splice(i,1) }
+    }
+
+    // Combo text fade
+    if (this.comboText) {
+      if (this.stat.combo === 0) this.comboText.alpha = Math.max(0, this.comboText.alpha - dt * 3)
+      else this.comboText.alpha = Math.min(1, this.comboText.alpha + dt * 2)
     }
 
     // Heads-up info
@@ -340,6 +371,44 @@ export class PlayScene implements Scene {
     if (!this.settings.visual.lowPerf) {
       this.pulse.color = color
       this.pulse.a = Math.min(1, this.pulse.a + (j === JUDGEMENT.PERFECT ? 0.5 : 0.3))
+    }
+  }
+
+  private spawnJudgeText(j: number){
+    if (!this.settings.visual.effects) return
+    const W = this.app.renderer.width
+    const H = this.app.renderer.height
+    const bottom = H - 80
+    const hitY = bottom - 20
+    const text = j===JUDGEMENT.PERFECT ? 'Perfect' : (j===JUDGEMENT.GOOD ? 'Good' : 'Miss')
+    const color = j===JUDGEMENT.PERFECT ? 0x66ffd0 : (j===JUDGEMENT.GOOD ? 0xffe37a : 0xff6a6a)
+    const t = new Text({ text, style: { fill: color, fontSize: 18, stroke: { color: 0x000000, width: 2 } } })
+    t.x = this.app.renderer.width/2 - t.width/2
+    t.y = hitY - 40
+    this.stage.addChild(t)
+    this.floatTexts.push({ t, life: 0.5, max: 0.5 })
+  }
+
+  private updateComboText(){
+    if (!this.comboText){
+      this.comboText = new Text({ text: '', style: { fill: 0xffffff, fontSize: 28, stroke: { color: 0x000000, width: 3 } } })
+      this.comboText.x = this.app.renderer.width/2 - 40
+      this.comboText.y = 16
+      this.comboText.alpha = 0
+      this.stage.addChild(this.comboText)
+    }
+    if (this.stat.combo > 0){
+      this.comboText.text = `${this.stat.combo} COMBO`
+      if (this.stat.combo > this.lastComboShown){
+        this.comboText.scale.set(1.2)
+      }
+      this.lastComboShown = this.stat.combo
+      // ease scale back
+      const tweenBack = () => { if (!this.comboText) return; this.comboText.scale.x = this.comboText.scale.y = Math.max(1, this.comboText.scale.x - 0.05) }
+      tweenBack()
+      this.comboText.alpha = 1
+    } else {
+      this.lastComboShown = 0
     }
   }
 }
