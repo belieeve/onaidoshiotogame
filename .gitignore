@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output
+/dist/
+
+# local env
+.env
+.env.*
+
+# editor
+.vscode/
+*.log
+.DS_Store
+
+# cache
+pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log*
