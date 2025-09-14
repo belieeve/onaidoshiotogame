@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/onaidoshiotogame/' : '/',
+  // Use relative base so all assets resolve under GitHub Pages subdirectory
+  base: './',
   server: {
     port: 5173,
     open: false
