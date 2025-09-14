@@ -3,7 +3,7 @@ const CACHE = 'djrp-cache-v1';
 const CORE = [
   './',
   './index.html',
-  './manifest.webmanifest'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
